@@ -13,7 +13,7 @@ require 'ruby-debug'
 # Scraper.run
 
 module Scraper
-  SCHOOL_NAME = "ecu"
+  SCHOOL_NAME = "buffalo"
   OUTPUT_FILE = SCHOOL_NAME+"_emails.txt"
   OUTPUT_FILE_NAMES = SCHOOL_NAME+"_names_count.txt"
   @counter = 0
@@ -44,16 +44,12 @@ module Scraper
   end
 
   def self.loop_names
-    load 'names_ecu.rb'
+    load 'names.rb'
     NAMES.each do |name|
       @name = name
       @query_counter += 1
       puts "searching name: #{name} -- QUERY #{@query_counter}: "
-      #url = "http://search.msu.edu/people/index.php?fst=#{name}&lst=&nid=&search=Search&type=stu"
-      #url = "http://www.nyu.edu/search.directory.html?search=#{name}&filter_base_id=students"
-      url = "http://www.ecu.edu/cs-ecu/email_phone.cfm?fLNAME=&fFNAME=#{name}&Limit=2&submit=Search"
-      #url = "http://auth.uakron.edu/zid/student-dir/index.cgi?state=dosearch&sn=&givenname=#{name}&partial=p"
-      #url = "http://www.ucr.edu/find_people.php?term=#{name}&sa=Go&type=student"
+      url = "http://www.buffalo.edu/directory/find-people-page.html?query=#{name}&submit.x=0&submit.y=0&submit=Search&affiliation=student&qualifier=name"
       url_object = open_url(url)
       if url_object
         parsed_url = parse_url(url_object).to_plain_text
@@ -87,14 +83,11 @@ module Scraper
   def self.find_emails_in_doc(parsed_url)
     count_start = @counter
     parsed_url.each_line do |s|
-      #email = s.match(/[a-z0-9]*@([a-z]*[\._-]*)*msu.edu/)
-      #email = s.match(/[a-z0-9]*@([a-z]*[\._-]*)*nyu.edu/)
-      email = s.match(/[a-z0-9]*@([a-z]*[\._-]*)*students.ecu.edu/)
-      #email = s.match(/[a-z0-9]*@([a-z]*[\._-]*)*uakron.edu/)
-      #email = s.match(/[a-z0-9]*@([a-z]*[\._-]*)*ucr.edu/)
+      #email = s.match(/[a-zA-Z0-9]*@([a-zA-Z]*[\._-]*)*buffalo.edu/)
+      email = s.match(/makeEmail\(\"[a-zA-Z0-9\._-]*/)
       if email and email[0]
         @counter += 1
-        email = email[0]
+        email = email[0].gsub('makeEmail("', '') + '@buffalo.edu'
         puts "Saving Email #{@counter}: #{email}"
         @outfile << email + "\n"
       end
